@@ -12,7 +12,7 @@ namespace
     // Textura de goma/cuero gris (grano fino + manchas suaves), generada una vez
     juce::Image makeLeather (int w, int h)
     {
-        juce::Image img (juce::Image::RGB, w, h, false);
+        juce::Image img (juce::Image::RGB, w, h, false, juce::SoftwareImageType());
         juce::Random rng (0xA27150);
         const int gs = 18;
         const int gw = w / gs + 2, gh = h / gs + 2;
@@ -758,7 +758,7 @@ void DetailOverlay::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colours::black.withAlpha (0.66f));
     auto p = panelArea().toFloat();
-    { juce::Path sp; sp.addRoundedRectangle (p, 22.0f); juce::DropShadow (juce::Colours::black, 40, { 0, 12 }).drawForPath (g, sp); }
+    for (int k = 1; k <= 10; ++k) { g.setColour (juce::Colours::black.withAlpha (0.06f)); g.drawRoundedRectangle (p.expanded ((float) k * 3.0f).translated (0, 8.0f), 22.0f + k * 3.0f, 3.0f); }
     g.setColour (AC::frame); g.fillRoundedRectangle (p, 22.0f);
     g.setColour (AC::frameEdge); g.drawRoundedRectangle (p.reduced (0.5f), 22.0f, 1.2f);
     auto head = p.reduced (24, 0).removeFromTop (50);
@@ -826,7 +826,7 @@ void AssistWindow::open (int l)
     updateButtons();
     setVisible (true);
     toFront (true);
-    startTimerHz (60);
+    startTimerHz (40);
 }
 
 void AssistWindow::close()
@@ -974,9 +974,10 @@ void AssistWindow::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colours::black.withAlpha (0.72f));
     auto p = panel().toFloat();
+    for (int k = 1; k <= 10; ++k)   // halo morado barato (sin desenfoque por cada fotograma)
     {
-        juce::Path sp; sp.addRoundedRectangle (p, 24.0f);
-        juce::DropShadow (AC::purple.withAlpha (0.30f), 44, {}).drawForPath (g, sp);
+        g.setColour (AC::purple.withAlpha (0.035f * (11 - k) / 10.0f));
+        g.drawRoundedRectangle (p.expanded ((float) k * 3.0f), 24.0f + k * 3.0f, 3.0f);
     }
     g.setColour (AC::frame); g.fillRoundedRectangle (p, 24.0f);
     g.setColour (AC::frameEdge); g.drawRoundedRectangle (p.reduced (0.5f), 24.0f, 1.2f);
@@ -1421,6 +1422,10 @@ void ArtisVoxOneEditor::refreshPresetBox()
         for (int i = 0; i < user.size(); ++i) presetBox.addItem (user[i].getFileNameWithoutExtension(), 1001 + i);
     }
     presetBox.setText (proc.currentPresetName, juce::dontSendNotification);
+    presetCategory = upper (tr ("Fabrica", lang));
+    for (auto& f : user) if (f.getFileNameWithoutExtension() == proc.currentPresetName) { presetCategory = upper (tr ("Usuario", lang)); break; }
+    if (proc.currentPresetName.startsWithIgnoreCase ("Vocal Assist") || proc.currentPresetName.startsWithIgnoreCase ("Assist")) presetCategory = "VOCAL ASSIST";
+    repaint (getLocalBounds().withHeight (getHeight() / 7));
     for (int i = 0; i < presetBox.getNumItems(); ++i)
         if (presetBox.getItemText (i) == proc.currentPresetName)
             presetBox.setSelectedItemIndex (i, juce::dontSendNotification);
@@ -1475,8 +1480,11 @@ void ArtisVoxOneEditor::timerCallback()
     if (assistRunning) assistBtn.repaint();
     else if (statusTimer > 0 && --statusTimer == 0) { statusMsg = {}; repaint(); }
 
-    if (presetBox.getText() != proc.currentPresetName && ! presetBox.isPopupActive())
+    if (proc.currentPresetName != shownPreset && ! presetBox.isPopupActive())
+    {
+        shownPreset = proc.currentPresetName;
         refreshPresetBox();
+    }
 
     static int slow = 0;
     if (++slow >= 6)
@@ -1490,11 +1498,58 @@ void ArtisVoxOneEditor::timerCallback()
 }
 
 // ============================================================================
+void ArtisVoxOneEditor::parentHierarchyChanged()
+{
+   #if JUCE_WINDOWS
+    // Direct2D (JUCE 8) bloquea FL Studio en algunos equipos: usamos el render por software (GDI)
+    if (auto* peer = getPeer())
+        if (peer->getAvailableRenderingEngines().size() > 1 && peer->getCurrentRenderingEngine() != 0)
+            peer->setCurrentRenderingEngine (0);
+   #endif
+}
+
 void ArtisVoxOneEditor::paint (juce::Graphics& g)
 {
-    const float sc = getWidth() / (float) TW;
+    // Fondo fijo pre-renderizado una vez (marco, logo, paneles...) para que la interfaz sea ligera
+    const float phys = juce::jmax (1.0f, g.getInternalContext().getPhysicalPixelScaleFactor());
+    const int cw = juce::roundToInt (getWidth() * phys), ch = juce::roundToInt (getHeight() * phys);
+    if (cw <= 0 || ch <= 0) return;
+    if (bgCache.getWidth() != cw || bgCache.getHeight() != ch || bgLang != lang)
+    {
+        bgCache = juce::Image (juce::Image::RGB, cw, ch, true, juce::SoftwareImageType());
+        juce::Graphics cg (bgCache);
+        cg.addTransform (juce::AffineTransform::scale (cw / (float) TW));
+        paintStatic (cg);
+        bgLang = lang;
+    }
+    g.drawImage (bgCache, getLocalBounds().toFloat());
+
+    // Partes que cambian
+    g.addTransform (juce::AffineTransform::translation ((float) B, (float) B).scaled (getWidth() / (float) TW));
+    {
+        auto lr = presetLcd().toFloat();
+        g.setColour (AC::lcdText.withAlpha (0.55f)); g.setFont (AC::mono (10.5f, false, 0.18f));
+        g.drawText (presetCategory.isNotEmpty() ? presetCategory : upper (tr ("Fabrica", lang)), lr.withHeight (30).translated (0, 6), juce::Justification::centred);
+    }
+    for (int i = 0; i < 4; ++i)
+    {
+        auto b = eqSliders[i].getBounds().toFloat();
+        const double v = eqSliders[i].getValue();
+        auto vr = juce::Rectangle<float> (b.getCentreX() - 28, b.getY() - 30, 56, 24);
+        AC::glowText (g, (v > 0.049 ? "+" : "") + juce::String (v, 1), vr, AC::mono (11.5f));
+    }
+    {
+        auto help = juce::Rectangle<float> (384, 714, 290, 46);
+        const auto ay = tr ("Ayuda", lang);
+        const float aw = AC::sans (13.5f, 3).getStringWidthFloat (ay) + 12.0f;
+        g.setColour (statusMsg.isNotEmpty() ? AC::text : AC::sub); g.setFont (AC::sans (12.0f, 1));
+        g.drawFittedText (statusMsg.isNotEmpty() ? statusMsg : tr ("HelpTip", lang), help.withTrimmedLeft (aw).toNearestInt(), juce::Justification::centredLeft, 1, 0.85f);
+    }
+}
+
+void ArtisVoxOneEditor::paintStatic (juce::Graphics& g)
+{
     g.fillAll (juce::Colour (0xff050507));
-    g.addTransform (juce::AffineTransform::scale (sc));
 
     // Borde exterior de goma / cuero gris (estilo ArtisEQ Pro)
     {
@@ -1600,12 +1655,6 @@ void ArtisVoxOneEditor::paint (juce::Graphics& g)
     {
         auto lr = presetLcd().toFloat();
         AC::lcdBox (g, lr, 14.0f);
-        juce::String cat = upper (tr ("Fabrica", lang));
-        if (proc.getUserPresets().size() > 0)
-            for (auto& f : proc.getUserPresets()) if (f.getFileNameWithoutExtension() == proc.currentPresetName) { cat = upper (tr ("Usuario", lang)); break; }
-        if (proc.currentPresetName.startsWithIgnoreCase ("Vocal Assist") || proc.currentPresetName.startsWithIgnoreCase ("Assist")) cat = "VOCAL ASSIST";
-        g.setColour (AC::lcdText.withAlpha (0.55f)); g.setFont (AC::mono (10.5f, false, 0.18f));
-        g.drawText (cat, lr.withHeight (30).translated (0, 6), juce::Justification::centred);
     }
 
     // Paneles
@@ -1616,10 +1665,8 @@ void ArtisVoxOneEditor::paint (juce::Graphics& g)
     for (int i = 0; i < 4; ++i)
     {
         auto b = eqSliders[i].getBounds().toFloat();
-        const double v = eqSliders[i].getValue();
         auto vr = juce::Rectangle<float> (b.getCentreX() - 28, b.getY() - 30, 56, 24);
         AC::lcdBox (g, vr, 8.0f, false);
-        AC::glowText (g, (v > 0.049 ? "+" : "") + juce::String (v, 1), vr, AC::mono (11.5f));
         g.setColour (AC::text); g.setFont (AC::sans (13.0f, 2));
         g.drawText (tr (eqKeys[i], lang), juce::Rectangle<float> (b.getCentreX() - 40, b.getBottom() + 4, 80, 20), juce::Justification::centred);
     }
@@ -1635,9 +1682,6 @@ void ArtisVoxOneEditor::paint (juce::Graphics& g)
         g.setColour (AC::pink); g.setFont (AC::sans (13.5f, 3));
         const auto ay = tr ("Ayuda", lang);
         g.drawText (ay, help, juce::Justification::centredLeft);
-        const float aw = AC::sans (13.5f, 3).getStringWidthFloat (ay) + 12.0f;
-        g.setColour (statusMsg.isNotEmpty() ? AC::text : AC::sub); g.setFont (AC::sans (12.0f, 1));
-        g.drawFittedText (statusMsg.isNotEmpty() ? statusMsg : tr ("HelpTip", lang), help.withTrimmedLeft (aw).toNearestInt(), juce::Justification::centredLeft, 1, 0.85f);
         g.setColour (AC::muted); g.setFont (AC::sans (12.0f, 2));
         g.drawText ("artivoxaudio.com", juce::Rectangle<float> (660, 714, 132, 46), juce::Justification::centredRight);
     }

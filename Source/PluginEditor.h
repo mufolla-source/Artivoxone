@@ -252,6 +252,11 @@ public:
     explicit ArtisVoxOneEditor (ArtisVoxOneProcessor&);
     ~ArtisVoxOneEditor() override;
     void paint (juce::Graphics&) override;
+    void parentHierarchyChanged() override;
+    void paintStatic (juce::Graphics&);
+    juce::Image bgCache;
+    int bgLang = -1;
+    juce::String presetCategory, shownPreset { "\x01" };
     void resized() override;
 
 private:

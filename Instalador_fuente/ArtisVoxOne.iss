@@ -3,7 +3,7 @@
 ;  Se compila con Inno Setup 6 o 7 (gratis): crear_instalador.bat
 ; ============================================================
 #define AppName "ArtisVox One"
-#define AppVersion "1.0.3"
+#define AppVersion "1.0.4"
 #define Publisher "ArtiVox"
 #define AppURL "https://artivoxaudio.com"
 
