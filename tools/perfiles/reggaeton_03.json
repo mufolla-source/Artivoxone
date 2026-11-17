@@ -1,0 +1,40 @@
+{
+  "archivo": "reggaeton_03.mp3",
+  "duracion_s": 170.0,
+  "nivel_mediano_dBFS": -13.2,
+  "p90_dBFS": -11.2,
+  "pico_dBFS": -0.7,
+  "rango_dinamico_dB": 2.4,
+  "ruido_fondo_dBFS": -30.0,
+  "factor_cresta_dB": 12.7,
+  "fraccion_con_voz": 0.87,
+  "bandas_rel_dB": {
+    "cuerpo_120": -9.7,
+    "barro_320": -3.5,
+    "presencia_3k2": -14.0,
+    "eses_7k": -17.2,
+    "aire_11k": -21.0
+  },
+  "desviacion_vs_ref_plugin_dB": {
+    "cuerpo_120": -0.7,
+    "barro_320": 4.5,
+    "presencia_3k2": 3.0,
+    "eses_7k": 4.8,
+    "aire_11k": 10.0
+  },
+  "sub60_rel_dB": -28.5,
+  "lado_vs_centro_dB": -13.3,
+  "afinacion": {
+    "tramas_con_tono": 2780,
+    "desvio_medio_cents": 8.2,
+    "dentro_10_cents_pct": 76.2,
+    "dentro_25_cents_pct": 89.6,
+    "transicion_media_ms": 0.0
+  },
+  "tonalidad": "A# Menor",
+  "espacio": {
+    "colas_medidas": 9,
+    "rt60_estimado_s": 9.24,
+    "nivel_cola_vs_voz_dB": -1.5
+  }
+}

@@ -1,0 +1,93 @@
+name: Compilar ArtisVox One
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar
+        run: cmake -B build -G Xcode
+
+      - name: Compilar (Universal - Apple Silicon + Intel)
+        run: cmake --build build --config Release --target ArtisVoxOne_VST3 ArtisVoxOne_AU ArtisVoxOne_Standalone -- -quiet
+
+      - name: Firmar (ad-hoc) y comprobar arquitecturas
+        run: |
+          R=build/ArtisVoxOne_artefacts/Release
+          for B in "$R/VST3/ArtisVox One.vst3" "$R/AU/ArtisVox One.component" "$R/Standalone/ArtisVox One.app"; do
+            codesign --force --deep --sign - "$B"
+          done
+          lipo -info "$R/VST3/ArtisVox One.vst3/Contents/MacOS/ArtisVox One"
+
+      - name: Crear instalador .pkg
+        run: |
+          R=build/ArtisVoxOne_artefacts/Release
+          V=$(grep -oE 'project\(ArtisVoxOne VERSION [0-9.]+' CMakeLists.txt | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          mkdir -p root/vst3/Library/Audio/Plug-Ins/VST3 root/au/Library/Audio/Plug-Ins/Components root/app/Applications pkgs
+          cp -R "$R/VST3/ArtisVox One.vst3" root/vst3/Library/Audio/Plug-Ins/VST3/
+          cp -R "$R/AU/ArtisVox One.component" root/au/Library/Audio/Plug-Ins/Components/
+          cp -R "$R/Standalone/ArtisVox One.app" root/app/Applications/
+          pkgbuild --root root/vst3 --identifier com.artivox.artisvoxone.vst3 --version "$V" --install-location / pkgs/vst3.pkg
+          pkgbuild --root root/au   --identifier com.artivox.artisvoxone.au   --version "$V" --install-location / pkgs/au.pkg
+          pkgbuild --root root/app  --identifier com.artivox.artisvoxone.app  --version "$V" --install-location / pkgs/app.pkg
+          mkdir -p Instalador
+          productbuild --distribution Instalador_fuente/mac/distribution.xml --resources Instalador_fuente/mac \
+                       --package-path pkgs "Instalador/ArtisVoxOne_Setup_v${V}_Mac.pkg"
+          mkdir -p zip
+          cp -R "root/vst3/Library/Audio/Plug-Ins/VST3/ArtisVox One.vst3" "root/au/Library/Audio/Plug-Ins/Components/ArtisVox One.component" zip/
+          cd zip && zip -qry "../Instalador/ArtisVoxOne_v${V}_Mac_plugins.zip" .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ArtisVoxOne-Mac
+          path: Instalador/*
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configurar
+        run: cmake -B build -A x64
+      - name: Compilar
+        run: cmake --build build --config Release --target ArtisVoxOne_VST3 ArtisVoxOne_Standalone --parallel
+      - name: Crear instalador (Inno Setup)
+        shell: cmd
+        run: |
+          mkdir Compilado
+          xcopy /E /I /Y "build\ArtisVoxOne_artefacts\Release\VST3\ArtisVox One.vst3" "Compilado\ArtisVox One.vst3"
+          copy /Y "build\ArtisVoxOne_artefacts\Release\Standalone\ArtisVox One.exe" "Compilado\"
+          "%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe" "Instalador_fuente\ArtisVoxOne.iss"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ArtisVoxOne-Windows-Instalador
+          path: Instalador/*.exe
+
+  release:
+    needs: [mac, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publicar en Releases (descarga directa)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=$(grep -oE 'project\(ArtisVoxOne VERSION [0-9.]+' CMakeLists.txt | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          ls -la dist
+          gh release delete "v$V" -y --cleanup-tag || true
+          gh release create "v$V" dist/* --title "ArtisVox One v$V" --notes "ArtisVox One by ArtiVox v$V
+
+          - Mac: ArtisVoxOne_Setup_v${V}_Mac.pkg (Apple Silicon + Intel: VST3, AU y App). Clic derecho > Abrir.
+          - Mac (plugins sueltos): ArtisVoxOne_v${V}_Mac_plugins.zip
+          - Windows: ArtisVoxOne_Setup_v${V}_Windows.exe"

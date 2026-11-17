@@ -1,0 +1,35 @@
+{
+  "archivo": "latintrap_03.mp3",
+  "duracion_s": 29.1,
+  "nivel_mediano_dBFS": -20.3,
+  "p90_dBFS": -17.1,
+  "pico_dBFS": -4.0,
+  "rango_dinamico_dB": 3.7,
+  "ruido_fondo_dBFS": -35.4,
+  "factor_cresta_dB": 15.9,
+  "fraccion_con_voz": 0.88,
+  "bandas_rel_dB": {
+    "cuerpo_120": -10.2,
+    "barro_320": -3.5,
+    "presencia_3k2": -12.4,
+    "eses_7k": -15.5,
+    "aire_11k": -21.0
+  },
+  "desviacion_vs_ref_plugin_dB": {
+    "cuerpo_120": -1.2,
+    "barro_320": 4.5,
+    "presencia_3k2": 4.6,
+    "eses_7k": 6.5,
+    "aire_11k": 10.0
+  },
+  "sub60_rel_dB": -29.0,
+  "lado_vs_centro_dB": -11.6,
+  "afinacion": {
+    "tramas_con_tono": 704,
+    "desvio_medio_cents": 26.4,
+    "dentro_10_cents_pct": 18.3,
+    "dentro_25_cents_pct": 45.7,
+    "transicion_media_ms": 80.0
+  },
+  "tonalidad": "G Menor"
+}

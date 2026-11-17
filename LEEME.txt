@@ -1,0 +1,31 @@
+ARTISVOX ONE 1.0.3 - by ArtiVox
+artivoxaudio.com
+
+COMPILAR EL PLUGIN (Windows)
+1. Necesitas Visual Studio 2026 (o 2022) con "Desarrollo para el escritorio con C++"
+   (incluye "Herramientas de CMake de C++ para Windows").
+2. Descomprime esta carpeta en una ruta sencilla, por ejemplo C:\ArtisVoxOne
+3. Doble clic en compilar.bat
+   - La primera vez descarga JUCE y tarda unos minutos.
+   - Al final prueba el motor de audio en tu ordenador.
+4. El resultado queda en la carpeta Compilado:
+      ArtisVox One.vst3   (el plugin)
+      ArtisVox One.exe    (programa para probarlo sin DAW)
+
+INSTALADOR OFICIAL DE ARTIVOX
+1. Instala Inno Setup 7 (o 6.3+), gratis: https://jrsoftware.org/isdl.php
+2. Ejecuta compilar.bat (crea la carpeta Compilado).
+3. Doble clic en crear_instalador.bat
+   - Busca Inno Setup solo. Si no lo encuentra, te pide que pegues la ruta de ISCC.exe
+     (normalmente C:\Program Files (x86)\Inno Setup 7\ISCC.exe).
+4. El instalador aparece en:  Instalador\ArtisVoxOne_Setup_v1.0.3_Windows.exe
+   Ese es el unico archivo que subes a Payhip.
+El instalador pide el idioma (Espanol / English / Portugues), copia el plugin a la
+carpeta VST3 (se puede cambiar) y el programa a Archivos de programa\ArtiVox,
+con desinstalador y la web artivoxaudio.com en "Agregar o quitar programas".
+
+MAC
+Sube el proyecto a GitHub (cuenta mufolla-source) y ejecuta la accion
+"Compilar ArtisVox One" en la pestana Actions. Descarga el .pkg de "Artifacts".
+
+Si algo falla, haz una foto de la ventana y pasasela a Claude.

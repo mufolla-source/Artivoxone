@@ -1,0 +1,7 @@
+build/
+JUCE/
+Compilado/
+Instalador/
+.DS_Store
+*.user
+.vs/
