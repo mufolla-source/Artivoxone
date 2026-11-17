@@ -986,7 +986,7 @@ void AssistWindow::paint (juce::Graphics& g)
         AC::screw (g, c, 6.0f);
 
     // Titulo
-    static const juce::Image logo = juce::ImageCache::getFromMemory (BinaryData::logo_png, BinaryData::logo_pngSize);
+    const juce::Image logo = juce::ImageCache::getFromMemory (BinaryData::logo_png, BinaryData::logo_pngSize);
     g.drawImage (logo, juce::Rectangle<float> (p.getX() + 30, p.getY() + 14, 44, 38), juce::RectanglePlacement::centred);
     {
         auto f = AC::sans (24.0f, 4);
@@ -1553,7 +1553,7 @@ void ArtisVoxOneEditor::paintStatic (juce::Graphics& g)
 
     // Borde exterior de goma / cuero gris (estilo ArtisEQ Pro)
     {
-        static const juce::Image leather = makeLeather (TW, TH);
+        if (leather.isNull()) leather = makeLeather (TW, TH);
         auto outer = juce::Rectangle<float> (0.0f, 0.0f, (float) TW, (float) TH).reduced (1.0f);
         juce::Path op; op.addRoundedRectangle (outer, 38.0f);
         {
@@ -1600,7 +1600,7 @@ void ArtisVoxOneEditor::paintStatic (juce::Graphics& g)
 
     // Logo + titulo integrados en la placa
     {
-        static const juce::Image logo = juce::ImageCache::getFromMemory (BinaryData::logo_png, BinaryData::logo_pngSize);
+        const juce::Image logo = juce::ImageCache::getFromMemory (BinaryData::logo_png, BinaryData::logo_pngSize);
         const float lh = 48.0f, lw = lh * logo.getWidth() / (float) logo.getHeight();
         auto lr = juce::Rectangle<float> (lw, lh).withCentre ({ 34.0f + lw * 0.5f, 54.0f });
 

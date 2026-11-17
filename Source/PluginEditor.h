@@ -254,7 +254,7 @@ public:
     void paint (juce::Graphics&) override;
     void parentHierarchyChanged() override;
     void paintStatic (juce::Graphics&);
-    juce::Image bgCache;
+    juce::Image bgCache, leather;
     int bgLang = -1;
     juce::String presetCategory, shownPreset { "\x01" };
     void resized() override;

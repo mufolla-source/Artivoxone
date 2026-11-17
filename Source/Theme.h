@@ -31,15 +31,14 @@ namespace AC
     inline juce::Colour grad (float t) { return purple.interpolatedWith (pink, juce::jlimit (0.0f, 1.0f, t)); }
 
     // ---- Tipografias incrustadas (Inter + JetBrains Mono, licencia OFL)
-    struct Fonts
+    // Se borra al apagar JUCE (no en la descarga de la DLL) para no bloquear el DAW al quitar el plugin
+    struct Fonts : private juce::DeletedAtShutdown
     {
         juce::Typeface::Ptr regular, medium, semibold, bold, xbold, monoMed, monoBold;
-        static Fonts& get()
-        {
-            static Fonts f;
-            return f;
-        }
-    private:
+        static Fonts& get() { return *getInstance(); }
+        ~Fonts() override { clearSingletonInstance(); }
+        JUCE_DECLARE_SINGLETON_INLINE (Fonts, false)
+
         Fonts()
         {
             auto mk = [] (const void* d, int n) { return juce::Typeface::createSystemTypefaceFor (d, (size_t) n); };

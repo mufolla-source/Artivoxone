@@ -1,4 +1,4 @@
-ARTISVOX ONE 1.0.4 - by ArtiVox
+ARTISVOX ONE 1.0.5 - by ArtiVox
 artivoxaudio.com
 
 COMPILAR EL PLUGIN (Windows)
@@ -18,7 +18,7 @@ INSTALADOR OFICIAL DE ARTIVOX
 3. Doble clic en crear_instalador.bat
    - Busca Inno Setup solo. Si no lo encuentra, te pide que pegues la ruta de ISCC.exe
      (normalmente C:\Program Files (x86)\Inno Setup 7\ISCC.exe).
-4. El instalador aparece en:  Instalador\ArtisVoxOne_Setup_v1.0.4_Windows.exe
+4. El instalador aparece en:  Instalador\ArtisVoxOne_Setup_v1.0.5_Windows.exe
    Ese es el unico archivo que subes a Payhip.
 El instalador pide el idioma (Espanol / English / Portugues), copia el plugin a la
 carpeta VST3 (se puede cambiar) y el programa a Archivos de programa\ArtiVox,

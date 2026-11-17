@@ -60,7 +60,7 @@ if errorlevel 1 (
 
 echo.
 echo ==================================================
-echo    LISTO: carpeta Instalador\ArtisVoxOne_Setup_v1.0.4_Windows.exe
+echo    LISTO: carpeta Instalador\ArtisVoxOne_Setup_v1.0.5_Windows.exe
 echo    Ese es el archivo que compartes o subes a Payhip.
 echo ==================================================
 pause

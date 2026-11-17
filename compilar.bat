@@ -5,7 +5,7 @@ title ArtiVox - Compilar ArtisVox One
 cd /d "%~dp0"
 
 echo ==================================================
-echo    ArtisVox One 1.0.4 - Compilando
+echo    ArtisVox One 1.0.5 - Compilando
 echo ==================================================
 echo.
 
